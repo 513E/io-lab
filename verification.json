@@ -1,0 +1,54 @@
+{
+  "large": {
+    "n": 33,
+    "checks": {
+      "총거래 − 국산 − 수입 (원자료 단위)": 0.0,
+      "(I − A) × L − I 최대 절대 잔차": 7.771561172376096e-16,
+      "Am × L − M 최대 절대 잔차": 0.0,
+      "diag(v) × L − V 최대 절대 잔차": 0.0
+    },
+    "firstSectorProduction": 19640.692394701506
+  },
+  "medium": {
+    "n": 83,
+    "checks": {
+      "총거래 − 국산 − 수입 (원자료 단위)": 0.0,
+      "(I − A) × L − I 최대 절대 잔차": 8.881784197001252e-16,
+      "Am × L − M 최대 절대 잔차": 0.0,
+      "diag(v) × L − V 최대 절대 잔차": 0.0
+    },
+    "firstSectorProduction": 15328.417704223402
+  },
+  "small": {
+    "n": 165,
+    "checks": {
+      "총거래 − 국산 − 수입 (원자료 단위)": 0.0,
+      "(I − A) × L − I 최대 절대 잔차": 2.7755575615628914e-15,
+      "Am × L − M 최대 절대 잔차": 0.0,
+      "diag(v) × L − V 최대 절대 잔차": 0.0
+    },
+    "firstSectorProduction": 14241.082584713176
+  },
+  "basic": {
+    "n": 380,
+    "checks": {
+      "총거래 − 국산 − 수입 (원자료 단위)": 0.0,
+      "(I − A) × L − I 최대 절대 잔차": 2.4424906541753444e-15,
+      "Am × L − M 최대 절대 잔차": 0.0,
+      "diag(v) × L − V 최대 절대 잔차": 0.0
+    },
+    "firstSectorProduction": 13620.235798184498
+  },
+  "alternateBOK": {
+    "year": "2019",
+    "n": 2
+  },
+  "genericCSV": {
+    "n": 3,
+    "missingImports": true,
+    "missingVA": true,
+    "unit": "million USD"
+  },
+  "coefficientOnly": true,
+  "invalidInputsRejected": true
+}

@@ -1,0 +1,43 @@
+{
+  "workbooks": {
+    "large": {
+      "n": 33,
+      "comparisons": 27,
+      "passed": 27,
+      "maxMatrixError": 7.771561172376096e-16
+    },
+    "medium": {
+      "n": 83,
+      "comparisons": 27,
+      "passed": 27,
+      "maxMatrixError": 8.881784197001252e-16
+    },
+    "small": {
+      "n": 165,
+      "comparisons": 27,
+      "passed": 27,
+      "maxMatrixError": 2.7755575615628914e-15
+    },
+    "basic": {
+      "n": 380,
+      "comparisons": 27,
+      "passed": 27,
+      "maxMatrixError": 2.4424906541753444e-15
+    }
+  },
+  "analytical": {
+    "priceTranspose": true,
+    "ghoshRowDenominator": true,
+    "ghoshSimilarity": true,
+    "directFinalImports": true,
+    "missingDataNull": true,
+    "structureDenominators": true,
+    "employmentUnits": true,
+    "atomicCSVReplacement": true,
+    "noOfficialDistribution": true,
+    "foreignCurrency": true,
+    "modelScope": true,
+    "negativeShockLimits": true,
+    "crossYearReferenceRejected": true
+  }
+}
