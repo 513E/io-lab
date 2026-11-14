@@ -1,0 +1,102 @@
+{
+  "date": "2026-11-14",
+  "checks": {
+    "core_groups_passed": 7,
+    "workbook_groups_passed": 4,
+    "numpy_eigenvalue_tolerance": 1e-09,
+    "export_csv_metadata": "passed",
+    "standalone_svg": "passed",
+    "user_csv_2020_two_industries": "distribution works; PCA blocked with explicit minimum; no stale results",
+    "accounting_correlation_notice": "passed",
+    "sector_linked_selection": "passed",
+    "existing_construction_scenario": "passed"
+  },
+  "defaults": [
+    "multiplier",
+    "exportRate",
+    "importRate",
+    "valueAddedRate",
+    "localization",
+    "selfInput"
+  ],
+  "classifications": {
+    "large": {
+      "industries": 33,
+      "excluded": [],
+      "numpy_eigenvalue_max_error": 8.881784197001252e-16,
+      "explained_two_axes": 0.6889072890761397,
+      "cluster_sizes": [
+        15,
+        10,
+        8
+      ],
+      "silhouette": 0.31432062594896987
+    },
+    "medium": {
+      "industries": 83,
+      "excluded": [],
+      "numpy_eigenvalue_max_error": 4.440892098500626e-16,
+      "explained_two_axes": 0.69023325924371,
+      "cluster_sizes": [
+        35,
+        35,
+        13
+      ],
+      "silhouette": 0.28052785948643577
+    },
+    "small": {
+      "industries": 164,
+      "excluded": [
+        {
+          "code": "062",
+          "name": "원유 및 천연가스"
+        }
+      ],
+      "numpy_eigenvalue_max_error": 7.771561172376096e-16,
+      "explained_two_axes": 0.6794193070954049,
+      "cluster_sizes": [
+        64,
+        70,
+        30
+      ],
+      "silhouette": 0.2746753405416312
+    },
+    "basic": {
+      "industries": 374,
+      "excluded": [
+        {
+          "code": "0194",
+          "name": "천연고무"
+        },
+        {
+          "code": "0612",
+          "name": "유연탄"
+        },
+        {
+          "code": "0621",
+          "name": "원유"
+        },
+        {
+          "code": "0622",
+          "name": "천연가스(LNG)"
+        },
+        {
+          "code": "0841",
+          "name": "원당"
+        },
+        {
+          "code": "8223",
+          "name": "가사서비스"
+        }
+      ],
+      "numpy_eigenvalue_max_error": 1.7763568394002505e-15,
+      "explained_two_axes": 0.6279276500657716,
+      "cluster_sizes": [
+        116,
+        178,
+        80
+      ],
+      "silhouette": 0.2711791512684998
+    }
+  }
+}
