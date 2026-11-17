@@ -8,13 +8,13 @@ async function handle({id,type,payload}){
       py=await loadPyodide({indexURL:ROOT});
       await py.loadPackage(['numpy','micropip']);
       await py.runPythonAsync("import micropip\nawait micropip.install('openpyxl==3.1.5')");
-      const course=await fetch('./course.py');
+      const course=await fetch('./course.py?v=20261117-course1');
       if(!course.ok)throw Error('학습·경제구조 코드를 불러오지 못했습니다.');
       py.FS.writeFile('/home/pyodide/course.py',await course.text());
-      const extension=await fetch('./advanced.py');
+      const extension=await fetch('./advanced.py?v=20261117-course1');
       if(!extension.ok)throw Error('심화 분석 코드를 불러오지 못했습니다.');
       py.FS.writeFile('/home/pyodide/advanced.py',await extension.text());
-      const response=await fetch('./model.py');
+      const response=await fetch('./model.py?v=20261117-course1');
       if(!response.ok) throw Error('분석 코드를 불러오지 못했습니다.');
       await py.runPythonAsync(await response.text());
       ready=true;
