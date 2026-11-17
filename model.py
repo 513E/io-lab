@@ -3,6 +3,7 @@ import io, json, math, re, csv
 import numpy as np
 import openpyxl
 from advanced import AdvancedMixin
+from course import CourseMixin
 
 def clean(v):
     return str(v).replace('\n', ' ').strip() if v is not None else ''
@@ -43,7 +44,7 @@ def auto_layout(rows):
             return dict(header=h,start=ri[codes[0]],col=cols[0][0],codes=codes,ri=ri,ci={code(v):i for i,v in enumerate(row) if v is not None})
     return None
 
-class IOModel(AdvancedMixin):
+class IOModel(AdvancedMixin, CourseMixin):
     def __init__(self,raw=None,filename='',book=None,mapping=None):
         self.filename=filename or '사용자 자료'
         if book is not None: self.book=book
@@ -243,7 +244,7 @@ def dispatch(method,payload):
     if method=='preview':
         rows=model.book[data['sheet']]
         return emit(dict(rows=[[clean(v) for v in r[:18]] for r in rows[:18]],height=len(rows),width=max((len(r) for r in rows),default=0)))
-    if method in ['price','ghosh','employment','decompose','bind_extra','attach_employment','attach_reference']:
+    if method in ['price','ghosh','employment','decompose','bind_extra','attach_employment','attach_reference','learning','economy']:
         if not model.metrics:raise ValueError('분석 자료를 먼저 연결하세요.')
         return emit(getattr(model,method)(data))
     if method=='validation_report':return emit(model.validation_report())

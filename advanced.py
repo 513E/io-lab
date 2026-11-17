@@ -3,7 +3,7 @@ import csv, io, re
 import numpy as np
 
 GROUPS=[('consumption','소비',['9111','9112']),('investment','고정투자',['9121','9122']),('inventory','재고·귀중품',['9131','9132']),('exports','수출',['9140'])]
-ROLES={'wage':'피용자보수','operating':'영업잉여','tax':'순생산세','exports':'수출액','importsTotal':'수입계','supplyTotal':'총공급계','jobs':'취업계수','employees':'고용계수','jobsMultiplier':'공표 취업유발계수','employeesMultiplier':'공표 고용유발계수','providedL':'제공된 생산유발계수','providedM':'제공된 수입유발계수','providedV':'제공된 부가가치유발계수',**{'fd_'+k:'국산 최종수요 · '+n for k,n,_ in GROUPS},**{'fm_'+k:'수입 최종수요 · '+n for k,n,_ in GROUPS}}
+ROLES={'finalTotal':'총거래 최종수요계','wage':'피용자보수','operating':'영업잉여','tax':'순생산세','exports':'수출액','importsTotal':'수입계','supplyTotal':'총공급계','jobs':'취업계수','employees':'고용계수','jobsMultiplier':'공표 취업유발계수','employeesMultiplier':'공표 고용유발계수','providedL':'제공된 생산유발계수','providedM':'제공된 수입유발계수','providedV':'제공된 부가가치유발계수',**{'fd_'+k:'국산 최종수요 · '+n for k,n,_ in GROUPS},**{'fm_'+k:'수입 최종수요 · '+n for k,n,_ in GROUPS}}
 def text(v):return '' if v is None else str(v).strip()
 def key(v):return str(int(v)) if isinstance(v,(int,float)) and float(v).is_integer() else text(v)
 def get(rows,r,c):return rows[r][c] if 0<=r<len(rows) and 0<=c<len(rows[r]) else None
@@ -60,6 +60,8 @@ class AdvancedMixin:
                 self._put(role,a,main+' · '+code+'행 / 총산출' if not coeff else main+' · '+code+'행')
         if not coeff:
             for role,code in [('exports','9140'),('importsTotal','9329'),('supplyTotal','9390')]:self._put(role,self._column(main,code),main+' · '+code+'열')
+        if not coeff and self.meta['basis']=='total':
+            self._put('finalTotal', self._column(main,'9190'), main+' · 9190열')
         for role,s in [('providedL','생산유발계수'),('providedM','수입유발계수'),('providedV','부가가치유발계수')]:
             if s in self.book:self._put(role,self._square(s),s+' · 산업코드 정렬')
         ds=self.mapping.get('domesticSheet') or (main if self.meta['basis']=='domestic' else '')
@@ -94,7 +96,7 @@ class AdvancedMixin:
         if not hasattr(self,'extra'):return {}
         domestic=self.meta['modelBasis']=='domestic'
         return dict(roles=[dict(code=k,name=n) for k,n in ROLES.items()],sources=self.extra_sources,structure=self.structure,
-                    price=domestic and any(k in self.extra for k in ['wage','tax','operating']),
+                    price=domestic, priceCosts=any(k in self.extra for k in ['wage','tax','operating']), priceImports=domestic and self.Am is not None,
                     ghosh=domestic and self.x is not None and self.Zd is not None,
                     employment=any(k in self.extra for k in ['jobs','employees','jobsMultiplier','employeesMultiplier']),
                     employmentUnit=getattr(self,'employment_unit','명/10억원'),
@@ -166,23 +168,61 @@ class AdvancedMixin:
         out=[dict(code=k,name=n,amount=amounts[k],share=amounts[k]/net*100 if net!=0 else None) for k,n,_ in GROUPS if k in amounts]
         return dict(rows=out,total=net,source=source,scope=scope,complete=len(parts)==4,metric=metric,sector=sector)
     def price(self,p):
-        if self.meta['modelBasis']!='domestic':raise ValueError('수입가격 고정 모형에는 국산 투입계수를 연결하세요.')
-        shock=np.zeros(self.n);applied=[]
-        for role in ['wage','tax','operating']:
-            rate=number(p.get(role,0))/100
-            if rate < -1:raise ValueError('비용 감소율은 -100% 이상이어야 합니다.')
-            if rate==0:continue
-            if role not in self.extra:raise ValueError(ROLES[role]+' 자료를 먼저 연결하세요.')
-            part=self.extra[role]*rate
-            if p.get('code','all')!='all':
-                j=self.codes.index(p['code']);mask=np.zeros(self.n);mask[j]=1;part=part*mask
-            shock+=part;applied.append(dict(role=role,rate=rate*100))
-        if not applied:raise ValueError('0이 아닌 비용 변화율을 입력하세요.')
-        dp=self.L.T@shock
-        if np.any(1+dp<0):raise ValueError('모형 가격이 음수가 됩니다. 충격 크기를 줄이세요.')
-        rows=[dict(code=c,name=n,direct=float(shock[i]*100),indirect=float((dp[i]-shock[i])*100),change=float(dp[i]*100)) for i,(c,n) in enumerate(zip(self.codes,self.names))]
+        if self.meta['modelBasis']!='domestic':raise ValueError('가격 분석에는 국산 투입계수를 연결하세요.')
+        mode=p.get('mode','cost');scope=p.get('code','all');shock=np.zeros(self.n);applied=[]
+        if mode not in ['cost','import','fx','product']:raise ValueError('가격 실험 방식을 확인하세요.')
+        if scope!='all' and scope not in self.codes:raise ValueError('대상 산업 코드가 현재 자료에 없습니다.')
+        def rate(key):
+            r=number(p.get(key,0))/100
+            if r < -1:raise ValueError('가격·비용 감소율은 -100% 이상이어야 합니다.')
+            return r
+        fixed=None
+        if mode=='cost':
+            for role in ['wage','tax','operating']:
+                r=rate(role)
+                if r==0:continue
+                if role not in self.extra:raise ValueError(ROLES[role]+' 자료를 먼저 연결하세요.')
+                part=self.extra[role]*r
+                if scope!='all':
+                    mask=np.zeros(self.n);mask[self.codes.index(scope)]=1;part=part*mask
+                shock+=part;applied.append(dict(role=role,rate=r*100))
+            if not applied:raise ValueError('0이 아닌 비용 변화율을 입력하세요.')
+            dp=self.L.T@shock
+            formula='Δp = Lᵀ Δc'
+            assumption='국산 투입계수·투입량·노동생산성 고정 · 수입가격 고정 · 비용 완전 전가'
+        elif mode in ['import','fx']:
+            if self.Am is None:raise ValueError('수입 투입계수 또는 수입거래표를 연결하세요.')
+            foreign=rate('foreign') if mode=='import' else 0
+            fx=rate('fx');pm=np.zeros(self.n)
+            if mode=='fx':
+                pm[:]=fx;scope='all'
+            else:
+                pm[:]=fx
+                ids=range(self.n) if scope=='all' else [self.codes.index(scope)]
+                for i in ids:pm[i]=(1+foreign)*(1+fx)-1
+            if not np.any(np.abs(pm)>1e-15):raise ValueError('국내통화 수입가격의 순변화가 0입니다.')
+            shock=self.Am.T@pm;dp=self.L.T@shock
+            applied=[dict(role='외화표시 수입가격',rate=foreign*100),dict(role='국내통화/외화 환율',rate=fx*100)]
+            formula='Δp = Lᵀ Aᵐᵀ Δpᵐ'
+            assumption='외화가격×환율로 국내통화 수입가격 계산 · 환율은 모든 수입 중간재에 동일 적용 · 완전 전가 · 부가가치 단위비용·투입계수 고정 · 수출수요 반응 미포함'
+        else:
+            if scope=='all':raise ValueError('가격을 외생적으로 고정할 상품 하나를 선택하세요.')
+            fixed=self.codes.index(scope);r=rate('product')
+            if r==0:raise ValueError('0이 아닌 상품가격 변화율을 입력하세요.')
+            ids=np.array([i for i in range(self.n) if i!=fixed],dtype=int)
+            dp=np.zeros(self.n);dp[fixed]=r;shock[fixed]=r
+            if len(ids):
+                shock[ids]=self.A[fixed,ids]*r
+                system=np.eye(len(ids))-self.A[np.ix_(ids,ids)].T
+                if np.linalg.cond(system)>1e10:raise ValueError('외생화 후 가격 모형이 수치적으로 불안정합니다.')
+                dp[ids]=np.linalg.solve(system,shock[ids])
+            applied=[dict(role='외생 상품가격',rate=r*100)]
+            formula='Δpᴱ = (I − Aᴱᴱᵀ)⁻¹ aʲᴱᵀ Δpⱼ'
+            assumption='선택 상품가격은 입력값으로 고정 · 해당 부문을 방정식에서 제외 · 다른 부문의 부가가치 단위비용·수입가격 고정 · 투입계수 고정 · 완전 전가'
+        if not np.isfinite(dp).all() or np.any(1+dp < -1e-10):raise ValueError('모형 가격이 음수 또는 비유한 값입니다. 충격 크기를 줄이세요.')
+        rows=[dict(code=c,name=n,direct=float(shock[i]*100),indirect=float((dp[i]-shock[i])*100),change=float(dp[i]*100),fixed=i==fixed) for i,(c,n) in enumerate(zip(self.codes,self.names))]
         rows.sort(key=lambda r:abs(r['change']),reverse=True)
-        return dict(rows=rows,weighted=float(np.dot(self.x,dp)/self.x.sum()*100) if self.x is not None and self.x.sum()>0 else None,max=float(dp.max()*100),min=float(dp.min()*100),inputs=applied,scope=p.get('code','all'))
+        return dict(rows=rows,weighted=float(np.dot(self.x,dp)/self.x.sum()*100) if self.x is not None and self.x.sum()>0 else None,max=float(dp.max()*100),min=float(dp.min()*100),inputs=applied,scope=scope,mode=mode,formula=formula,assumption=assumption)
     def ghosh(self,p):
         if self.meta['modelBasis']!='domestic' or self.x is None or self.Zd is None:raise ValueError('국산거래표와 총산출을 먼저 연결하세요.')
         if np.any((self.x==0)&(np.abs(self.Zd).sum(1)>1e-9)):raise ValueError('총산출 0인 산업에 국산 판매가 있어 배분계수를 구할 수 없습니다.')

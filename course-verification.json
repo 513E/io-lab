@@ -1,0 +1,31 @@
+{
+  "synthetic": "Analytical 2-sector costs; import/FX interaction; fixed-price elimination; missing-data, total basis, amount scaling, coefficient-only and 1-sector cases passed",
+  "large": {
+    "industries": 33,
+    "officialChecks": 27,
+    "maxDemandBalanceResidual": 0.0,
+    "fourPriceModes": "passed",
+    "sheets": 12
+  },
+  "medium": {
+    "industries": 83,
+    "officialChecks": 27,
+    "maxDemandBalanceResidual": 0.0,
+    "fourPriceModes": "passed",
+    "sheets": 12
+  },
+  "small": {
+    "industries": 165,
+    "officialChecks": 27,
+    "maxDemandBalanceResidual": 0.0,
+    "fourPriceModes": "passed",
+    "sheets": 12
+  },
+  "basic": {
+    "industries": 380,
+    "officialChecks": 27,
+    "maxDemandBalanceResidual": 0.0,
+    "fourPriceModes": "passed",
+    "sheets": 12
+  }
+}
