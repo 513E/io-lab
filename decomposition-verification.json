@@ -1,0 +1,29 @@
+{
+  "synthetic": "Five isolated drivers; exact sum; identical economy; order alignment; residual identity; invalid inputs; zero denominators; no-data worker dispatch passed",
+  "workbooks": {
+    "large": {
+      "industries": 33,
+      "maximumAccountingResidual": 0.0,
+      "relativeAccountingResidual": 0.0,
+      "snapshotAndIdenticalEconomy": "passed; second year relabeled only for regression, not real data"
+    },
+    "medium": {
+      "industries": 83,
+      "maximumAccountingResidual": 0.0,
+      "relativeAccountingResidual": 0.0,
+      "snapshotAndIdenticalEconomy": "passed; second year relabeled only for regression, not real data"
+    },
+    "small": {
+      "industries": 165,
+      "maximumAccountingResidual": 0.0,
+      "relativeAccountingResidual": 0.0,
+      "snapshotAndIdenticalEconomy": "passed; second year relabeled only for regression, not real data"
+    },
+    "basic": {
+      "industries": 380,
+      "maximumAccountingResidual": 0.0,
+      "relativeAccountingResidual": 0.0,
+      "snapshotAndIdenticalEconomy": "passed; second year relabeled only for regression, not real data"
+    }
+  }
+}
