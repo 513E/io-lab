@@ -1,0 +1,50 @@
+{
+  "passed": 15,
+  "checks": [
+    "Textbook homogeneous equilibria and welfare",
+    "Three-firm lecture example and Cournot FOC",
+    "N=1, Bertrand exclusion and no cartel deviation gain",
+    "Cartel unilateral deviation is profitable",
+    "Competitive reference has no fabricated HHI",
+    "Quantity reactions and asymmetric corner solutions",
+    "Stackelberg textbook and follower deterrence boundary",
+    "Differentiated equilibria satisfy same inverse demand and FOC",
+    "Independent products and homogeneous-price limit",
+    "Sequential price follower advantage and leader optimization",
+    "Free-entry integer inequalities and global social optimum",
+    "Entry indifference, no entry and zero-cost limits",
+    "Scaling preserves quantities and concentration",
+    "Invalid or missing input rejection",
+    "Browser global export survives CommonJS coexistence"
+  ],
+  "defaultCournot": {
+    "key": "cournot",
+    "label": "쿠르노 · 2개 기업",
+    "Q": 60,
+    "P": 40,
+    "qs": [
+      30,
+      30
+    ],
+    "profits": [
+      900,
+      900
+    ],
+    "profit": 1800,
+    "cs": 1800,
+    "welfare": 3600,
+    "dwl": 450,
+    "hhi": 5000,
+    "lerner": 0.75
+  },
+  "defaultEntry": {
+    "free": 8,
+    "social": 3,
+    "freeContinuous": 8,
+    "socialContinuous": 3.3267487109222253,
+    "freeProfit": 0,
+    "nextProfit": -19,
+    "socialWelfare": 3496.875,
+    "tieRule": "순이윤 0에서도 진입, 후생이 같으면 더 적은 기업 수"
+  }
+}
