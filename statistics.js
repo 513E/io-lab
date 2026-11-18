@@ -8,8 +8,44 @@ const statsDef=k=>{const d=statsDefs.find(d=>d[0]===k);return {key:k,name:k==='m
 const statsFormat=(x,k)=>IOStats.finite(x)?num(x,k==='output'?2:4):'자료 없음';
 function statsCaption(){return [info?.meta.year||'연도 미지정',info?.level,info?.n+'개 산업',modelLabel()].join(' · ');}
 function statsSource(){return String(info?.meta.source||info?.filename||'출처 미지정');}
-function resetStatistics(){statsJob++;statsWorker?.terminate();statsWorker=null;statsRunning=false;statsRows=[];statsAvailable=[];statsPCA=null;statsSelected='';$('stats-workspace').hidden=true;$('stats-empty').hidden=false;$('stats-badge').textContent='자료 연결 대기';$('stats-search').value='';$('stats-sector').replaceChildren();$('stats-pca-result').hidden=true;for(const id of ['stats-summary','stats-distribution-chart','stats-correlation-chart','stats-heatmap','stats-pca-chart'])$(id).replaceChildren();}
-function refreshStatistics(){
+function resetStatistics(){$('stats-empty').textContent='위에서 분석할 자료를 불러오면 통계 탐색을 시작할 수 있습니다.';statsJob++;statsWorker?.terminate();statsWorker=null;statsRunning=false;statsRows=[];statsAvailable=[];statsPCA=null;statsSelected='';$('stats-workspace').hidden=true;$('stats-empty').hidden=false;$('stats-badge').textContent='자료 연결 대기';$('stats-search').value='';$('stats-sector').replaceChildren();$('stats-pca-result').hidden=true;for(const id of ['stats-summary','stats-distribution-chart','stats-correlation-chart','stats-heatmap','stats-pca-chart'])$(id).replaceChildren();}
+let statsLibraryLoad=null,statsRefresh=0;
+const statsLibraryReady=()=>typeof globalThis.IOStats==='object'&&['finite','describe','correlation','pcaCluster'].every(k=>typeof globalThis.IOStats[k]==='function');
+function ensureStatsLibrary(){
+ if(statsLibraryReady())return Promise.resolve();
+ if(statsLibraryLoad)return statsLibraryLoad;
+ statsLibraryLoad=new Promise((resolve,reject)=>{
+  const script=document.createElement('script');
+  const timer=setTimeout(()=>finish(Error('통계 계산 파일 응답이 지연됩니다.')),15000);
+  let finished=false;
+  function finish(error){if(finished)return;finished=true;clearTimeout(timer);script.onload=script.onerror=null;script.remove();error?reject(error):resolve();}
+  script.src='./stats-math.js?v=20261117-stats2&retry=1';
+  script.onload=()=>finish(statsLibraryReady()?null:Error('통계 계산 파일을 초기화하지 못했습니다.'));
+  script.onerror=()=>finish(Error('통계 계산 파일을 내려받지 못했습니다.'));
+  document.head.appendChild(script);
+ }).finally(()=>{statsLibraryLoad=null;});
+ return statsLibraryLoad;
+}
+async function refreshStatistics(){
+ const version=loadVersion,refresh=++statsRefresh;
+ if(!info?.ready){resetStatistics();return;}
+ try{
+  if(!statsLibraryReady()){
+   $('stats-workspace').hidden=true;$('stats-empty').hidden=false;
+   $('stats-empty').textContent='통계 계산 파일을 다시 준비하고 있습니다. 다른 분석 기능은 사용할 수 있습니다.';
+   await ensureStatsLibrary();
+  }
+  if(version!==loadVersion||refresh!==statsRefresh||!info?.ready)return;
+  populateStatistics();
+ }catch(e){
+  if(version!==loadVersion||refresh!==statsRefresh)return;
+  resetStatistics();$('stats-badge').textContent='통계 연결 확인 필요';
+  $('stats-empty').textContent='통계 기능을 준비하지 못했습니다. 불러온 자료와 다른 분석 기능은 유지됩니다. ';
+  const retry=document.createElement('button');retry.type='button';retry.className='text-button';retry.textContent='통계 다시 연결';retry.onclick=refreshStatistics;$('stats-empty').appendChild(retry);
+  console.warn('통계 초기화 실패:',e);
+ }
+}
+function populateStatistics(){
  if(!info?.ready){resetStatistics();return;}
  const structure=new Map((info.advanced?.structure||[]).map(r=>[r.code,r]));
  statsRows=info.sectors.map(r=>{const s=structure.get(r.code)||{};return {code:r.code,name:r.name,output:r.output,multiplier:r.multiplier,backward:r.backward,forward:r.forward,valueAddedRate:r.valueRate,exportRate:s.exportRate??null,importRate:s.importRate??null,intermediateRate:s.intermediateRate??null,localization:s.localization??null,selfInput:s.selfInput??null};});
@@ -85,7 +121,7 @@ function runPCA(){
  invalidatePCA();const keys=Array.from($('stats-features').querySelectorAll('input:checked')).map(e=>e.value),job=++statsJob,version=loadVersion;
  statsRunning=true;$('stats-run-pca').disabled=true;$('stats-run-pca').textContent='계산 중…';$('stats-pca-status').textContent='표준화·주성분·군집을 계산하고 있습니다…';
  function finish(error,result){if(job!==statsJob||version!==loadVersion)return;statsRunning=false;$('stats-run-pca').disabled=false;$('stats-run-pca').textContent='산업 유형 분석하기';statsWorker?.terminate();statsWorker=null;if(error){$('stats-pca-status').textContent=error;$('stats-pca-status').classList.add('analysis-warning');return;}statsPCA=result;statsCluster=statsPCA.rows.find(r=>r.code===statsSelected)?.cluster||0;$('stats-pca-csv').disabled=$('stats-pca-svg').disabled=false;renderPCA();}
- try{statsWorker=new Worker('./stats-worker.js');statsWorker.onmessage=({data})=>finish(data.error,data.result);statsWorker.onerror=()=>finish('분석 엔진을 불러오지 못했습니다. 새로고침 후 다시 실행하세요.');statsWorker.postMessage({id:job,rows:statsRows,keys,k:Number($('stats-k').value)});}catch(e){finish(e.message);}
+ try{statsWorker=new Worker('./stats-worker.js?v=20261117-stats2');statsWorker.onmessage=({data})=>finish(data.error,data.result);statsWorker.onerror=()=>finish('분석 엔진을 불러오지 못했습니다. 새로고침 후 다시 실행하세요.');statsWorker.postMessage({id:job,rows:statsRows,keys,k:Number($('stats-k').value)});}catch(e){finish(e.message);}
 }
 function renderPCA(){
  const r=statsPCA;if(!r)return;$('stats-pca-result').hidden=false;

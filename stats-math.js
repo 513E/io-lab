@@ -79,5 +79,7 @@ function pcaCluster(rows,requested,k){
  return {n,total:rows.length,keys,means,sds,omitted,excluded:rows.filter(r=>!complete.includes(r)).map(r=>({code:r.code,name:r.name})),eigenvalues:eig.values,explained:eig.values.map(v=>v/total),vectors:eig.vectors,loadings:keys.map((key,j)=>({key,pc1:eig.vectors[0][j]*Math.sqrt(eig.values[0]),pc2:eig.vectors[1][j]*Math.sqrt(eig.values[1])})),rows:complete.map((r,i)=>({code:r.code,name:r.name,x:scores[i][0],y:scores[i][1],cluster:groupOrder.indexOf(km.labels[i])})),clusters:groupOrder.map((g,id)=>({id,n:km.labels.filter(v=>v===g).length,z:km.centers[g],means:km.centers[g].map((x,j)=>x*sds[j]+means[j])})),silhouette:km.silhouette,inertia:km.inertia,k,seed:20261114,restarts:8};
 }
 const api={finite,mean,quantile,describe,ranks,correlation,eigenSymmetric,pcaCluster};
-if(typeof module!=='undefined'&&module.exports)module.exports=api;else root.IOStats=api;
+// Browser hosts may also expose CommonJS; always register the browser/worker API.
+root.IOStats=api;
+if(typeof module!=='undefined'&&module.exports)module.exports=api;
 })(typeof self!=='undefined'?self:globalThis);
