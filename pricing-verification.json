@@ -1,0 +1,115 @@
+{
+  "passed": 16,
+  "tests": [
+    "기본 예산가격과 목표이윤 항등식",
+    "직접원가 마크업은 간접비와 이윤 포함",
+    "직접원가와 총원가의 동등 마크업",
+    "조정폭은 마크업의 퍼센트포인트",
+    "실제 판매량 변경은 가격을 유지",
+    "판매량 0·자산 0의 정의 불가 비율",
+    "직접비 0·공헌이익 0·간접비 0",
+    "예산량을 변경할 때만 고정비 배부가 변함",
+    "강의 A·B 간접비 예제",
+    "세 활동 별도 배부 및 원가 보존",
+    "동인 수량비가 같으면 전통과 ABC 일치",
+    "동인 단위 변경 불변성",
+    "ABC 0 원가·0 직접비와 분모 검사",
+    "통화 단위 비례와 비율 불변성",
+    "부적합 입력·빈값 거부",
+    "브라우저 전역 초기화 및 CommonJS 공존"
+  ],
+  "defaultPrices": [
+    {
+      "label": "직접원가",
+      "P": 80,
+      "profit": 10000
+    },
+    {
+      "label": "총원가",
+      "P": 84,
+      "profit": 14000
+    },
+    {
+      "label": "조정 마크업",
+      "P": 84,
+      "profit": 14000
+    },
+    {
+      "label": "목표수익률",
+      "P": 85,
+      "profit": 15000
+    }
+  ],
+  "lectureABC": {
+    "pools": [
+      {
+        "cost": 100000,
+        "a": 10,
+        "b": 40,
+        "rate": 2000,
+        "allocated": [
+          20000,
+          80000
+        ]
+      },
+      {
+        "cost": 0,
+        "a": 0,
+        "b": 0,
+        "rate": null,
+        "allocated": [
+          0,
+          0
+        ]
+      },
+      {
+        "cost": 0,
+        "a": 0,
+        "b": 0,
+        "rate": null,
+        "allocated": [
+          0,
+          0
+        ]
+      }
+    ],
+    "products": [
+      {
+        "name": "제품 A",
+        "q": 9000,
+        "d": 50,
+        "r": 0.2,
+        "traditional": 90000,
+        "activity": 20000,
+        "traditionalUnit": 10,
+        "activityUnit": 2.2222222222222223,
+        "traditionalCost": 60,
+        "activityCost": 52.22222222222222,
+        "traditionalPrice": 72,
+        "activityPrice": 62.666666666666664,
+        "difference": -70000,
+        "x": 0.044444444444444446
+      },
+      {
+        "name": "제품 B",
+        "q": 1000,
+        "d": 80,
+        "r": 0.2,
+        "traditional": 10000,
+        "activity": 80000,
+        "traditionalUnit": 10,
+        "activityUnit": 80,
+        "traditionalCost": 90,
+        "activityCost": 160,
+        "traditionalPrice": 108,
+        "activityPrice": 192,
+        "difference": 70000,
+        "x": 1
+      }
+    ],
+    "total": 100000,
+    "totalQ": 10000,
+    "traditionalSum": 100000,
+    "activitySum": 100000
+  }
+}
