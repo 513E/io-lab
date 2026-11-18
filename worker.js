@@ -8,6 +8,9 @@ async function handle({id,type,payload}){
       py=await loadPyodide({indexURL:ROOT});
       await py.loadPackage(['numpy','micropip']);
       await py.runPythonAsync("import micropip\nawait micropip.install('openpyxl==3.1.5')");
+      const regional=await fetch('./regional.py?v=20261118-region1');
+      if(!regional.ok)throw Error('지역경제 분석 코드를 불러오지 못했습니다.');
+      py.FS.writeFile('/home/pyodide/regional.py',await regional.text());
       const sda=await fetch('./decomposition.py?v=20261118-sda1');
       if(!sda.ok)throw Error('변동요인 분해 코드를 불러오지 못했습니다.');
       py.FS.writeFile('/home/pyodide/decomposition.py',await sda.text());
@@ -17,17 +20,17 @@ async function handle({id,type,payload}){
       const extension=await fetch('./advanced.py?v=20261117-course1');
       if(!extension.ok)throw Error('심화 분석 코드를 불러오지 못했습니다.');
       py.FS.writeFile('/home/pyodide/advanced.py',await extension.text());
-      const response=await fetch('./model.py?v=20261118-sda1');
+      const response=await fetch('./model.py?v=20261118-region1');
       if(!response.ok) throw Error('분석 코드를 불러오지 못했습니다.');
       await py.runPythonAsync(await response.text());
       ready=true;
     }
     let answer;
-    if(type==='load'){
+    if(type==='load'||type==='regional_load'){
       postMessage({status:'Excel의 모든 시트를 읽고 계산식을 검증하고 있습니다…'});
       py.globals.set('js_bytes',new Uint8Array(payload.buffer));
       py.globals.set('js_filename',payload.filename||'');
-   answer=await py.runPythonAsync('initialize(js_bytes.to_py(), js_filename)');
+   answer=await py.runPythonAsync(type==='regional_load'?'emit(regional.initialize(js_bytes.to_py(), js_filename))':'initialize(js_bytes.to_py(), js_filename)');
    py.globals.delete('js_filename');
       py.globals.delete('js_bytes');
     } else {

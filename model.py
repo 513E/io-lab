@@ -5,6 +5,7 @@ import openpyxl
 from advanced import AdvancedMixin
 from course import CourseMixin
 import decomposition
+import regional
 
 def clean(v):
     return str(v).replace('\n', ' ').strip() if v is not None else ''
@@ -238,6 +239,7 @@ def initialize(raw,filename=''):
 def dispatch(method,payload):
     global model
     data=json.loads(payload)
+    if method.startswith('regional_'):return emit(regional.dispatch(method,data,model))
     if method=='sda_demo':return emit(decomposition.demo())
     if method=='sda_compare':return emit(decomposition.compare(data))
     if model is None:raise ValueError('자료를 먼저 불러오세요.')
